@@ -5,7 +5,7 @@ Created on Mar 30, 2016
 '''
 import unittest
 from src.tweet_parser import TweetParser
-import datetime
+from datetime import datetime
 
 
 class TestTweetParser(unittest.TestCase):

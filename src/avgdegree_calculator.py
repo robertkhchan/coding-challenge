@@ -15,7 +15,7 @@ class AverageDegreeCalculator(object):
             hashtags_graph (dict): takes the form {hashtag : {related_tags}, hashtag: {related_tags}}
             
         Return:
-            avg_deg (float)
+            avg_deg (float) with two significant places
         '''
         avg_deg = 0.0
         
@@ -26,6 +26,6 @@ class AverageDegreeCalculator(object):
             
             avg_deg = sum_of_degree / len(hashtags_graph)
             
-        return avg_deg
+        return "%.2f" % avg_deg
         
     

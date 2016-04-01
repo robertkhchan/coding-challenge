@@ -24,10 +24,13 @@ class TweetParser(object):
         data = json.loads(tweet, strict=False)
         if ("created_at" in data.keys()):
             created_at = datetime.strptime(data["created_at"], "%a %b %d %H:%M:%S +0000 %Y")
-            hashtags = {}
-            for entry in data["entities"]["hashtags"]:
-                hashtags.append(entry["text"])
-                return (created_at, hashtags)
+            
+            hashtags = set()
+            for hashtag in data["entities"]["hashtags"]:
+                hashtags.add(hashtag["text"])
+                
+            return (created_at, hashtags)
+        
         else:
-                return None
+            return None
         

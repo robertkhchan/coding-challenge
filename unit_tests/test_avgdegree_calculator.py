@@ -16,4 +16,4 @@ class TestAverageDegreeCalculator(unittest.TestCase):
         
         avg_deg = calculator.calculate(hashtags_graph)
         
-        self.assertEquals(1.0, avg_deg)
+        self.assertEquals('%.2f' % 1.00, avg_deg)
