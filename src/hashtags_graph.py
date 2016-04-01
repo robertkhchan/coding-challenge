@@ -3,8 +3,9 @@ Created on Mar 30, 2016
 
 @author: robert
 '''
-import copy
+#import copy
 from datetime import timedelta
+from itertools import combinations
 
 class HashtagsGraph(object):
     '''
@@ -13,9 +14,8 @@ class HashtagsGraph(object):
     
     def __init__(self, sliding_window_seconds=60):
         self.processed_entries = dict() # {datetime: [{str}]}
-        self.hashtags_graph = dict()  # {str: {str}}
+        self.hashtags_edge_count = dict() # {(str,str): int}
         self.sliding_window_seconds = timedelta(seconds=sliding_window_seconds)
-        pass
 
     def earliest_processed_timestamp(self):
         return next(iter(sorted(self.processed_entries.keys())), None)    
@@ -39,57 +39,35 @@ class HashtagsGraph(object):
             self.purge_before(entry[0] - self.sliding_window_seconds)
 
         self.insert(entry)
-
-
-    def purge_before(self, datetime_to_purge):
-        
-        entries_to_purge = {key: value for (key, value) in self.processed_entries.items() if key < datetime_to_purge}
-        entries_to_keep = {key: value for (key, value) in self.processed_entries.items() if key >= datetime_to_purge}
-        self.processed_entries = entries_to_keep
-        
-        for entries in entries_to_purge.items():
-            for entry in entries[1]:
-                if (len(entry) > 1):
-                    for hashtag in entry:
-                        related_tags = copy.deepcopy(entry)
-                        related_tags.remove(hashtag)
-                        self.remove_from_graph(hashtag, related_tags)
                 
     
     def insert(self, entry):
-        current_list = self.processed_entries.get(entry[0],[])
-        current_list += [entry[1]]
-        self.processed_entries[entry[0]] = current_list
+        self.processed_entries[entry[0]] = self.processed_entries.get(entry[0],[]) + [entry[1]]
         
         if (len(entry[1]) > 1):
-            for hashtag in entry[1]:
-                related_tags = copy.deepcopy(entry[1])
-                related_tags.remove(hashtag)
-                self.add_to_graph(hashtag, related_tags)
+            self.increment_edge_count(entry[1])
 
-    
-    def add_to_graph(self, hashtag, related_tags):
-        '''
-        Arguments:
-            hashtag (str)
-            related_tags ({str})
-        '''
-        existing_related_tags = self.hashtags_graph.get(hashtag, set())
-        existing_related_tags |= related_tags
-        self.hashtags_graph[hashtag] = existing_related_tags
-        
-        
-    def remove_from_graph(self, hashtag, related_tags):
-        '''
-        Arguments:
-            hashtag (str)
-            related_tags ({str})
-        '''
-        existing_related_tags = self.hashtags_graph.get(hashtag, None)
-        if (existing_related_tags is not None):
-            existing_related_tags -= related_tags
-            if (len(existing_related_tags) > 0):
-                self.hashtags_graph[hashtag] = existing_related_tags
-            else:
-                self.hashtags_graph.pop(hashtag)
 
+    def purge_before(self, datetime_to_purge):
+        entries_to_purge = {key: value for (key, value) in self.processed_entries.items() if key < datetime_to_purge}
+        entries_to_key   = {key: value for (key, value) in self.processed_entries.items() if key >= datetime_to_purge}
+        self.processed_entries = entries_to_key
+
+        for entries in entries_to_purge.items():
+            for entry in entries[1]:
+                if (len(entry) > 1):
+                    self.decrement_edge_count(entry)
+                        
+                        
+    def increment_edge_count(self, hashtags):
+        for hashtags_edge in combinations(sorted(hashtags), 2):
+            self.hashtags_edge_count[hashtags_edge] = self.hashtags_edge_count.get(hashtags_edge,0) + 1
+
+            
+    def decrement_edge_count(self, hashtags):
+        for hashtags_edge in combinations(sorted(hashtags), 2):
+            if hashtags_edge in self.hashtags_edge_count:
+                if (self.hashtags_edge_count[hashtags_edge] > 1):
+                    self.hashtags_edge_count[hashtags_edge] -= 1
+                else:
+                    self.hashtags_edge_count.pop(hashtags_edge) 
