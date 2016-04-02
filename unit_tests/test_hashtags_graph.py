@@ -150,3 +150,54 @@ class TestHashtagsGraph(unittest.TestCase):
         self.assertEquals(0, len(graph.processed_entries))
         self.assertEquals(0, len(graph.edge_counts))
 
+
+    def testUpdate_with_OrphanNode(self):
+        graph = HashtagsGraph()
+        
+        self.assertEquals(0, len(graph.processed_entries))
+        self.assertEquals(0, len(graph.edge_counts))
+        
+        # insert first entry
+        created_at_1 = datetime(2016, 3, 31, 3, 28, 10)
+        hashtags_1 = {"spark", "hadoop"}
+        entry_1 = (created_at_1, hashtags_1)
+        
+        graph.update(entry_1)
+        
+        self.assertEquals(1, len(graph.processed_entries))
+        self.assertEquals([hashtags_1], graph.processed_entries[created_at_1])
+        
+        self.assertEquals(1, len(graph.edge_counts))
+        self.assertEquals(1, graph.edge_counts[("hadoop","spark")])
+        
+        # insert second entry
+        created_at_2 = datetime(2016, 3, 31, 3, 28, 15)
+        hashtags_2 = {"storm", "hadoop", "apache"}
+        entry_2 = (created_at_2, hashtags_2)
+        graph.update(entry_2)
+        
+        self.assertEquals(2, len(graph.processed_entries))
+        self.assertEquals([hashtags_2], graph.processed_entries[created_at_2])
+        
+        self.assertEquals(4, len(graph.edge_counts))
+        self.assertEquals(1, graph.edge_counts[("hadoop","spark")])
+        self.assertEquals(1, graph.edge_counts[("apache","hadoop")])
+        self.assertEquals(1, graph.edge_counts[("apache","storm")])
+        self.assertEquals(1, graph.edge_counts[("hadoop","storm")])
+        
+        # insert third entry to purge first entry, leaving "spark" as orphan node
+        created_at_3 = datetime(2016, 3, 31, 3, 29, 13)
+        hashtags_3 = {"apache", "hadoop"}
+        entry_3 = (created_at_3, hashtags_3)
+        graph.update(entry_3)
+        
+        self.assertEquals(2, len(graph.processed_entries))
+        self.assertEquals([hashtags_3], graph.processed_entries[created_at_3])
+        
+        self.assertEquals(3, len(graph.edge_counts))
+        self.assertIsNone(graph.edge_counts.get(("hadoop","spark"), None))
+        self.assertEquals(2, graph.edge_counts[("apache","hadoop")])
+        self.assertEquals(1, graph.edge_counts[("apache","storm")])
+        self.assertEquals(1, graph.edge_counts[("hadoop","storm")])
+    
+    
