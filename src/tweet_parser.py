@@ -1,14 +1,14 @@
 '''
 Created on Mar 30, 2016
 
-@author: robert
+@author: Robert Chan
 '''
 from datetime import datetime
 import json
 
 class TweetParser(object):
     '''
-    classdocs
+    Helper class to parse single tweet entry into a tuple of datetime and hashtags set
     '''
     
     def parse(self, tweet):
@@ -22,6 +22,8 @@ class TweetParser(object):
         '''
         
         data = json.loads(tweet, strict=False)
+        
+        # Only tweets contain "created_at" attribute is considered of interest
         if ("created_at" in data.keys()):
             created_at = datetime.strptime(data["created_at"], "%a %b %d %H:%M:%S +0000 %Y")
             
@@ -31,6 +33,7 @@ class TweetParser(object):
                 
             return (created_at, hashtags)
         
+        # Otherwise, return None
         else:
             return None
         

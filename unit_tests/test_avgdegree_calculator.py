@@ -10,12 +10,41 @@ from src.avgdegree_calculator import AverageDegreeCalculator
 class TestAverageDegreeCalculator(unittest.TestCase):
 
 
-    def test_calculate(self):
+    def test_calculate_single_edge(self):
         
-        hashtags_edge_count = {("apache","spark"):1}
+        edge_counts = {
+            ("apache","spark"):1
+        }
         
-        calculator = AverageDegreeCalculator()
+        avg_deg = AverageDegreeCalculator().calculate(edge_counts)
         
-        avg_deg = calculator.calculate(hashtags_edge_count)
+        self.assertEquals("1.00", avg_deg)
+
         
-        self.assertEquals('%.2f' % 1.00, avg_deg)
+    def test_calculate_multi_edges(self):
+        
+        edge_counts = {
+            ("apache","spark"):1,
+            ("apache","storm"):1,
+            ("apache","hadoop"):1,
+            ("hadoop","storm"):1,
+        }
+        
+        avg_deg = AverageDegreeCalculator().calculate(edge_counts)
+        
+        self.assertEquals("2.00", avg_deg)
+
+        
+    def test_calculate_truncate(self):
+        
+        edge_counts = {
+            ("flink","spark"):1,
+            ("hbase","spark"):1,
+            ("apache","storm"):1,
+            ("apache","hadoop"):1,
+            ("storm","hadoop"):1,
+        }
+        
+        avg_deg = AverageDegreeCalculator().calculate(edge_counts)
+        
+        self.assertEquals("1.66", avg_deg)

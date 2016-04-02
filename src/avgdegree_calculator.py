@@ -1,21 +1,21 @@
 '''
 Created on Mar 30, 2016
 
-@author: robert
+@author: Robert Chan
 '''
 
 class AverageDegreeCalculator(object):
     '''
-    classdocs
+    Helper class to calculate average degree of hashtags graph
     '''
     
     def calculate(self, hashtags_edge_count):
         '''
         Arguments: 
-            hashtags_graph (dict): takes the form {hashtag : {related_tags}, hashtag: {related_tags}}
+            hashtags_edge_count (dict): takes the form {(str,str): int}
             
         Return:
-            avg_deg (float) with two significant places
+            avg_deg (float) truncated to two digits after the decimal place
         '''
         avg_deg = 0.0
         
